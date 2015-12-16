@@ -29,7 +29,7 @@ class Universe():
         p21 = self.point_3d_to_2d(p31)
         self.line_2d(p20, p21, color)
 
-    def draw_axes(self, color):
+    def draw_3d_axes(self, color):
         self.line_3d((-self.max_axis, 0, 0), (self.max_axis, 0, 0), color)
         self.line_3d((0, -self.max_axis, 0), (0, self.max_axis, 0), color)
         self.line_3d((0, 0, -self.max_axis), (0, 0, self.max_axis), color)
@@ -48,11 +48,11 @@ class Universe():
 
 def main():
     pygame.init()
-    universe = Universe(225, 200, -30, 0.3)
+    universe = Universe(max_dim=225, max_axis=200, z_angle=-30, z_flat=0.3)
     
     done = False
     while not done:
-        universe.draw_axes((0, 128, 255))
+        universe.draw_3d_axes((0, 128, 255))
         universe.draw_3d_cube(75, (255, 255, 255))
 
         universe.z_angle += 0
