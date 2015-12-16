@@ -2,23 +2,23 @@ import pygame
 import math
 import time
 
-def d2((x, y), universe):
+def point_2d((x, y), universe):
     return x + universe['max_dim'], universe['max_dim'] - y
 
-def d3_to_d2((x, y, z), universe):
+def point_3d_to_2d((x, y, z), universe):
     xz = -z * math.sin(universe['z_angle'] * math.pi / 180)
     yz = -z * universe['z_flat'] * math.cos(universe['z_angle'] * math.pi / 180)
     return x + xz, y + yz
 
-def d3((x, y, z)):
-    return d2(d3_to_d2((x, y, z), universe), universe)
+def point_3d((x, y, z)):
+    return point_2d(point_3d_to_2d((x, y, z), universe), universe)
               
 def line_d2(p0, p1, color, universe):
-    pygame.draw.line(universe['screen'], color, d2(p0, universe), d2(p1, universe))
+    pygame.draw.line(universe['screen'], color, point_2d(p0, universe), point_2d(p1, universe))
 
 def line_d3(p30, p31, color, universe):
-    p20 = d3_to_d2(p30, universe)
-    p21 = d3_to_d2(p31, universe)
+    p20 = point_3d_to_2d(p30, universe)
+    p21 = point_3d_to_2d(p31, universe)
     line_d2(p20, p21, color, universe)
 
 def draw_axes(universe):
