@@ -2,54 +2,60 @@ import pygame
 import math
 import time
 
-def point_2d((x, y), universe):
-    return x + universe['max_dim'], universe['max_dim'] - y
+class Universe():
+    def __init__(self, max_dim, max_axis, z_angle, z_flat):
+        self.max_dim = max_dim
+        self.max_axis = max_axis
+        self.z_angle = z_angle
+        self.z_flat = z_flat
+        self.screen = pygame.display.set_mode((2 * self.max_dim, 2 * self.max_dim), pygame.DOUBLEBUF)
 
-def point_3d_to_2d((x, y, z), universe):
-    xz = -z * math.sin(universe['z_angle'] * math.pi / 180)
-    yz = -z * universe['z_flat'] * math.cos(universe['z_angle'] * math.pi / 180)
-    return x + xz, y + yz
+    def point_2d(self, (x, y)):
+        return x + self.max_dim, self.max_dim - y
 
-def point_3d((x, y, z)):
-    return point_2d(point_3d_to_2d((x, y, z), universe), universe)
+    def point_3d_to_2d(self, (x, y, z)):
+        xz = -z * math.sin(self.z_angle * math.pi / 180)
+        yz = -z * self.z_flat * math.cos(self.z_angle * math.pi / 180)
+        return x + xz, y + yz
+
+    def point_3d(self, (x, y, z)):
+        return self.point_2d(point_3d_to_2d((x, y, z)))
               
-def line_d2(p0, p1, color, universe):
-    pygame.draw.line(universe['screen'], color, point_2d(p0, universe), point_2d(p1, universe))
+    def line_2d(self, p0, p1, color):
+        pygame.draw.line(self.screen, color, self.point_2d(p0), self.point_2d(p1))
+        
+    def line_3d(self, p30, p31, color):
+        p20 = self.point_3d_to_2d(p30)
+        p21 = self.point_3d_to_2d(p31)
+        self.line_2d(p20, p21, color)
 
-def line_d3(p30, p31, color, universe):
-    p20 = point_3d_to_2d(p30, universe)
-    p21 = point_3d_to_2d(p31, universe)
-    line_d2(p20, p21, color, universe)
+    def draw_axes(self, color):
+        self.line_3d((-self.max_axis, 0, 0), (self.max_axis, 0, 0), color)
+        self.line_3d((0, -self.max_axis, 0), (0, self.max_axis, 0), color)
+        self.line_3d((0, 0, -self.max_axis), (0, 0, self.max_axis), color)
 
-def draw_axes(universe):
-    axis_color = (0, 128, 255)
-    line_d3((-universe['max_axis'], 0, 0), (universe['max_axis'], 0, 0), axis_color, universe)
-    line_d3((0, -universe['max_axis'], 0), (0, universe['max_axis'], 0), axis_color, universe)
-    line_d3((0, 0, -universe['max_axis']), (0, 0, universe['max_axis']), axis_color, universe)
+    def draw_3d_shape(self, vertices, edges, color):
+        for edge in edges:
+            real_vert0 = vertices[edge[0]]
+            real_vert1 = vertices[edge[1]]
+            self.line_3d(vertices[edge[0]], vertices[edge[1]], color)
 
-def draw_3d_shape(universe, vertices, edges, color):
-    for edge in edges:
-        real_vert0 = vertices[edge[0]]
-        real_vert1 = vertices[edge[1]]
-        line_d3(vertices[edge[0]], vertices[edge[1]], color, universe)
-
-def draw_3d_cube(universe, size, color):
-    vertices = [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0), (1, 0, 1), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
-    vertices = [[size * coord for coord in vertex] for vertex in vertices]
-    edges = [(0, 1), (1, 2), (2, 3), (3, 0), (3, 4), (4, 5), (5, 2), (4, 7), (7, 6), (6, 5), (6, 1), (7, 0)]
-    draw_3d_shape(universe, vertices, edges, color)
+    def draw_3d_cube(self, size, color):
+        vertices = [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0), (1, 0, 1), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
+        vertices = [[size * coord for coord in vertex] for vertex in vertices]
+        edges = [(0, 1), (1, 2), (2, 3), (3, 0), (3, 4), (4, 5), (5, 2), (4, 7), (7, 6), (6, 5), (6, 1), (7, 0)]
+        self.draw_3d_shape(vertices, edges, color)
 
 def main():
     pygame.init()
-    universe = {'max_dim': 225, 'max_axis': 200, 'z_angle': -30, 'z_flat': 0.3}
-    universe['screen'] = pygame.display.set_mode((2 * universe['max_dim'], 2 * universe['max_dim']), pygame.DOUBLEBUF)
+    universe = Universe(225, 200, -30, 0.3)
     
     done = False
     while not done:
-        draw_axes(universe)
-        draw_3d_cube(universe, 75, (255, 255, 255))
+        universe.draw_axes((0, 128, 255))
+        universe.draw_3d_cube(75, (255, 255, 255))
 
-        universe['z_angle'] += 0
+        universe.z_angle += 0
         time.sleep(0.1)
         
         for event in pygame.event.get():
