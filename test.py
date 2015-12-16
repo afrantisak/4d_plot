@@ -52,10 +52,11 @@ def main():
     
     done = False
     while not done:
+        universe.screen.fill((0, 0, 0))
         universe.draw_3d_axes((0, 128, 255))
         universe.draw_3d_cube(75, (255, 255, 255))
 
-        universe.z_angle += 0
+        universe.z_angle += 1
         time.sleep(0.1)
         
         for event in pygame.event.get():
