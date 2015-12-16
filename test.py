@@ -1,69 +1,60 @@
 import pygame
 import math
+import time
 
-max_dim = 225
-max_line = 200
-z_angle = -65
+def d2((x, y), universe):
+    return x + universe['max_dim'], universe['max_dim'] - y
 
-pygame.init()
-screen = pygame.display.set_mode((2 * max_dim, 2 * max_dim))
-axis_color = (0, 128, 255)
-done = False
-
-def d2((x, y)):
-    return x + max_dim, max_dim - y
-
-def d3_to_d2((x, y, z)):
-    xz = -z * math.sin(z_angle * math.pi / 180)
-    yz = -z * math.cos(z_angle * math.pi / 180)
+def d3_to_d2((x, y, z), universe):
+    xz = -z * math.sin(universe['z_angle'] * math.pi / 180)
+    yz = -z * math.cos(universe['z_angle'] * math.pi / 180)
     return x + xz, y + yz
 
 def d3((x, y, z)):
-    return d2(d3_to_d2(x, y, z))
+    return d2(d3_to_d2((x, y, z), universe), universe)
               
-def line_d2(p0, p1, color):
-    pygame.draw.line(screen, color, d2(p0), d2(p1))
+def line_d2(p0, p1, color, universe):
+    pygame.draw.line(universe['screen'], color, d2(p0, universe), d2(p1, universe))
 
-def line_d3(p30, p31, color):
-    p20 = d3_to_d2(p30)
-    p21 = d3_to_d2(p31)
-    line_d2(p20, p21, color)
+def line_d3(p30, p31, color, universe):
+    p20 = d3_to_d2(p30, universe)
+    p21 = d3_to_d2(p31, universe)
+    line_d2(p20, p21, color, universe)
 
-# draw axes
-line_d3((-max_line, 0, 0), (max_line, 0, 0), axis_color)
-line_d3((0, -max_line, 0), (0, max_line, 0), axis_color)
-line_d3((0, 0, -max_line), (0, 0, max_line), axis_color)
+def draw_axes(universe):
+    axis_color = (0, 128, 255)
+    line_d3((-universe['max_axis'], 0, 0), (universe['max_axis'], 0, 0), axis_color, universe)
+    line_d3((0, -universe['max_axis'], 0), (0, universe['max_axis'], 0), axis_color, universe)
+    line_d3((0, 0, -universe['max_axis']), (0, 0, universe['max_axis']), axis_color, universe)
 
-# draw 3d cube
-cube_size = 100
-cube_color = (255, 255, 255)
-cube_vertices = [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0), (1, 0, 1), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
-cube_vertices = [[cube_size * coord for coord in vertex] for vertex in cube_vertices]
+def draw_3d_cube(universe, size):
+    color = (255, 255, 255)
+    vertices = [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 0, 0), (1, 0, 1), (1, 1, 1), (0, 1, 1), (0, 0, 1)]
+    edges = [(0, 1), (1, 2), (2, 3), (3, 0), (3, 4), (4, 5), (5, 2), (4, 7), (7, 6), (6, 5), (6, 1), (7, 0)]
+    for edge in edges:
+        real_vert0 = [size * coord for coord in vertices[edge[0]]]
+        real_vert1 = [size * coord for coord in vertices[edge[1]]]
+        line_d3(real_vert0, real_vert1, color, universe)
 
-def edge(v0, v1):
-    line_d3(cube_vertices[v0], cube_vertices[v1], cube_color)
-
-edge(0, 1)
-edge(1, 2)
-edge(2, 3)
-edge(3, 0)
-edge(3, 4)
-edge(4, 5)
-edge(5, 2)
-edge(4, 7)
-edge(7, 6)
-edge(6, 5)
-edge(6, 1)
-edge(7, 0)
-
-
+def main():
+    pygame.init()
+    universe = {'max_dim': 225, 'max_axis': 200, 'z_angle': -70}
+    universe['screen'] = pygame.display.set_mode((2 * universe['max_dim'], 2 * universe['max_dim']), pygame.DOUBLEBUF)
     
-while not done:
+    done = False
+    while not done:
+        draw_axes(universe)
+        draw_3d_cube(universe, 50)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
+        universe['z_angle'] += 0
+        time.sleep(0.1)
         
-    pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+        
+        pygame.display.flip()
+
+main()
 
          
